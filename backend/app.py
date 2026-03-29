@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 from dotenv import load_dotenv
+from bson.objectid import ObjectId
+from bson.json_util import dumps, loads
 
 load_dotenv()
 
@@ -18,14 +20,21 @@ collection = db["tasks"]
 def home():
     return "Backend with MongoDB running!"
 
-@app.route('/tasks', methods=['GET'])
+# GET all tasks
+@app.route("/tasks", methods=["GET"])
 def get_tasks():
     tasks = list(collection.find())
 
+    # Ensure all tasks have consistent keys and string _id
+    formatted_tasks = []
     for task in tasks:
-        task["_id"] = str(task["_id"])  # convert ObjectId → string
+        formatted_tasks.append({
+            "_id": str(task.get("_id")),          # convert ObjectId to string
+            "title": task.get("title", ""),       # default empty string if missing
+            "completed": task.get("completed", False)  # default False
+        })
 
-    return jsonify(tasks)
+    return jsonify(formatted_tasks)
 
 @app.route('/tasks', methods=['POST'])
 def add_task():
