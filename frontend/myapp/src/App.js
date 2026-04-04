@@ -4,57 +4,18 @@ import axios from "axios";
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
 
-  const backendURL = "http://127.0.0.1:5000"; // Flask backend URL
+  const backendURL = "http://127.0.0.1:5000";
 
-  // Fetch tasks from backend
+  // Fetch tasks
   const fetchTasks = async () => {
     try {
       const response = await axios.get(`${backendURL}/tasks`);
       setTasks(response.data);
     } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
-  };
-
-  // Add new task
-  const addTask = async () => {
-    if (!newTaskTitle.trim()) return;
-
-    try {
-      const response = await axios.post(`${backendURL}/tasks`, {
-        title: newTaskTitle,
-      });
-      // Add the newly returned task to state
-      setTasks((prevTasks) => [...prevTasks, response.data]);
-      setNewTaskTitle(""); // clear input
-    } catch (error) {
-      console.error("Error adding task:", error);
-    }
-  };
-
-  // Toggle task completion
-  const toggleCompletion = async (task) => {
-    try {
-      const response = await axios.put(`${backendURL}/tasks/${task._id}`, {
-        completed: !task.completed,
-      });
-      // Update task in state
-      setTasks((prevTasks) =>
-        prevTasks.map((t) => (t._id === task._id ? response.data : t))
-      );
-    } catch (error) {
-      console.error("Error updating task:", error);
-    }
-  };
-
-  // Delete task
-  const deleteTask = async (taskId) => {
-    try {
-      await axios.delete(`${backendURL}/tasks/${taskId}`);
-      setTasks((prevTasks) => prevTasks.filter((t) => t._id !== taskId));
-    } catch (error) {
-      console.error("Error deleting task:", error);
+      console.error(error);
     }
   };
 
@@ -62,39 +23,96 @@ function App() {
     fetchTasks();
   }, []);
 
+  // Add task
+  const addTask = async () => {
+    if (!newTaskTitle.trim()) return;
+
+    const res = await axios.post(`${backendURL}/tasks`, {
+      title: newTaskTitle,
+    });
+
+    setTasks([...tasks, res.data]);
+    setNewTaskTitle("");
+  };
+
+  // Delete task
+  const deleteTask = async (id) => {
+    await axios.delete(`${backendURL}/tasks/${id}`);
+    setTasks(tasks.filter((t) => t._id !== id));
+  };
+
+  // Toggle completion
+  const toggleCompletion = async (task) => {
+    const res = await axios.put(`${backendURL}/tasks/${task._id}`, {
+      completed: !task.completed,
+    });
+
+    setTasks(tasks.map((t) => (t._id === task._id ? res.data : t)));
+  };
+
+  // Start editing
+  const startEdit = (task) => {
+    setEditingTaskId(task._id);
+    setEditingTitle(task.title);
+  };
+
+  // Save edited task
+  const saveEdit = async (id) => {
+    const res = await axios.put(`${backendURL}/tasks/${id}`, {
+      title: editingTitle,
+    });
+
+    setTasks(tasks.map((t) => (t._id === id ? res.data : t)));
+    setEditingTaskId(null);
+    setEditingTitle("");
+  };
+
   return (
     <div style={{ maxWidth: "600px", margin: "50px auto" }}>
       <h1>Task Manager</h1>
 
-      <div>
-        <input
-          type="text"
-          placeholder="Enter new task"
-          value={newTaskTitle}
-          onChange={(e) => setNewTaskTitle(e.target.value)}
-        />
-        <button onClick={addTask}>Add Task</button>
-      </div>
+      {/* Add Task */}
+      <input
+        value={newTaskTitle}
+        onChange={(e) => setNewTaskTitle(e.target.value)}
+        placeholder="Enter task"
+      />
+      <button onClick={addTask}>Add</button>
 
+      {/* Task List */}
       <ul>
         {tasks.length > 0 ? (
           tasks.map((task) => (
             <li key={task._id} style={{ margin: "10px 0" }}>
-              <span
-                style={{
-                  textDecoration: task.completed ? "line-through" : "none",
-                  cursor: "pointer",
-                }}
-                onClick={() => toggleCompletion(task)}
-              >
-                {task.title}
-              </span>
-              <button
-                style={{ marginLeft: "10px" }}
-                onClick={() => deleteTask(task._id)}
-              >
-                Delete
-              </button>
+              
+              {/* EDIT MODE */}
+              {editingTaskId === task._id ? (
+                <>
+                  <input
+                    value={editingTitle}
+                    onChange={(e) => setEditingTitle(e.target.value)}
+                  />
+                  <button onClick={() => saveEdit(task._id)}>Save</button>
+                </>
+              ) : (
+                <>
+                  <span
+                    onClick={() => toggleCompletion(task)}
+                    style={{
+                      cursor: "pointer",
+                      textDecoration: task.completed
+                        ? "line-through"
+                        : "none",
+                    }}
+                  >
+                    {task.title}
+                  </span>
+
+                  <button onClick={() => startEdit(task)}>Edit</button>
+                </>
+              )}
+
+              <button onClick={() => deleteTask(task._id)}>Delete</button>
             </li>
           ))
         ) : (
