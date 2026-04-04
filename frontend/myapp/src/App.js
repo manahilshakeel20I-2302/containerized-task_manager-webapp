@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import "./styles.css";
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -66,61 +67,78 @@ function App() {
     setEditingTaskId(null);
     setEditingTitle("");
   };
-
   return (
-    <div style={{ maxWidth: "600px", margin: "50px auto" }}>
-      <h1>Task Manager</h1>
+  <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+    
+    <div className="glass-card w-100" style={{ maxWidth: "600px" }}>
+      
+      <h2 className="title"> Manahil's Task Manager 📝</h2>
 
       {/* Add Task */}
-      <input
-        value={newTaskTitle}
-        onChange={(e) => setNewTaskTitle(e.target.value)}
-        placeholder="Enter task"
-      />
-      <button onClick={addTask}>Add</button>
+      <div className="d-flex mb-4">
+        <input
+          type="text"
+          className="form-control custom-input me-2"
+          placeholder="What do you want to do today?"
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
+        />
+        <button className="btn btn-light btn-custom" onClick={addTask}>
+          Add
+        </button>
+      </div>
 
       {/* Task List */}
-      <ul>
-        {tasks.length > 0 ? (
-          tasks.map((task) => (
-            <li key={task._id} style={{ margin: "10px 0" }}>
-              
-              {/* EDIT MODE */}
-              {editingTaskId === task._id ? (
-                <>
-                  <input
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
-                  />
-                  <button onClick={() => saveEdit(task._id)}>Save</button>
-                </>
-              ) : (
-                <>
-                  <span
-                    onClick={() => toggleCompletion(task)}
-                    style={{
-                      cursor: "pointer",
-                      textDecoration: task.completed
-                        ? "line-through"
-                        : "none",
-                    }}
+      {tasks.length > 0 ? (
+        tasks.map((task) => (
+          <div key={task._id} className="task-item d-flex justify-content-between align-items-center">
+            
+            {editingTaskId === task._id ? (
+              <>
+                <input
+                  className="form-control me-2"
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                />
+                <button className="btn btn-success btn-sm" onClick={() => saveEdit(task._id)}>
+                  Save
+                </button>
+              </>
+            ) : (
+              <>
+                <span
+                  className={task.completed ? "completed" : ""}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => toggleCompletion(task)}
+                >
+                  {task.title}
+                </span>
+
+                <div>
+                  <button
+                    className="btn btn-warning btn-sm me-2"
+                    onClick={() => startEdit(task)}
                   >
-                    {task.title}
-                  </span>
+                    ✏️
+                  </button>
 
-                  <button onClick={() => startEdit(task)}>Edit</button>
-                </>
-              )}
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => deleteTask(task._id)}
+                  >
+                    🗑
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        ))
+      ) : (
+        <p className="text-center">No tasks yet 👀</p>
+      )}
 
-              <button onClick={() => deleteTask(task._id)}>Delete</button>
-            </li>
-          ))
-        ) : (
-          <p>No tasks found</p>
-        )}
-      </ul>
     </div>
-  );
+  </div>
+);
 }
-
 export default App;
