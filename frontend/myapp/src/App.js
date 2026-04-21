@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./styles.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -8,7 +9,8 @@ function App() {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
 
-  const backendURL = "http://127.0.0.1:5000";
+  //const backendURL = "http://127.0.0.1:5000"; http://localhost:5000
+  const backendURL = "http://localhost:5000"; 
 
   // Fetch tasks
   const fetchTasks = async () => {
