@@ -11,6 +11,7 @@ function App() {
 
   //const backendURL = "http://127.0.0.1:5000"; http://localhost:5000
   const backendURL = "http://localhost:5000"; 
+  //const backendURL = "http://backend:5000/tasks"; http://localhost:5000/tasks
 
   // Fetch tasks
   const fetchTasks = async () => {
